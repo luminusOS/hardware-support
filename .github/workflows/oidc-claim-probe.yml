@@ -1,0 +1,60 @@
+name: Inert OIDC claim probe
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  oidc-claim-probe:
+    if: github.repository_id == '1474434141' && github.ref == 'refs/heads/main' && github.ref_protected
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    permissions:
+      id-token: write
+    steps:
+      - name: Report selected runner claims
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          const fields = [
+            'repository_id', 'repository_owner_id', 'repository', 'repository_owner',
+            'ref', 'sha', 'workflow_ref', 'workflow_sha', 'job_workflow_ref',
+            'job_workflow_sha', 'sub', 'runner_environment', 'event_name',
+            'run_id', 'run_attempt',
+          ];
+
+          try {
+            const url = new URL(process.env.ACTIONS_ID_TOKEN_REQUEST_URL);
+            const credential = process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN;
+            if (url.protocol !== 'https:' ||
+                !url.hostname.endsWith('.actions.githubusercontent.com') ||
+                url.username || url.password || url.port || !credential) {
+              throw new Error();
+            }
+            url.searchParams.set('audience', 'luminusos-hardware-oidc-inert-probe');
+            const response = await fetch(url, {
+              headers: { Authorization: `Bearer ${credential}` },
+              redirect: 'error',
+              signal: AbortSignal.timeout(10000),
+            });
+            if (!response.ok) throw new Error();
+            const { value } = await response.json();
+            if (typeof value !== 'string' || value.length > 32768) throw new Error();
+            const segments = value.split('.');
+            if (segments.length !== 3 || segments.some(segment => !/^[A-Za-z0-9_-]+$/.test(segment))) {
+              throw new Error();
+            }
+            // This probe observes claim shape. Its output is never authorization evidence.
+            const claims = JSON.parse(Buffer.from(segments[1], 'base64url').toString('utf8'));
+            const result = Object.fromEntries(fields.map(field => {
+              const claim = claims[field];
+              return [field, typeof claim === 'string' && /^[\x21-\x7e]{1,512}$/.test(claim) ? claim : null];
+            }));
+            console.log(JSON.stringify(result));
+            if (Object.values(result).includes(null)) process.exitCode = 1;
+          } catch {
+            console.error('Inert OIDC claim probe refused the request or response.');
+            process.exitCode = 1;
+          }
+          NODE
