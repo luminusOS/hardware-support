@@ -1,35 +1,52 @@
-# LuminusOS hardware support
+<div align="center">
+  <img src="https://raw.githubusercontent.com/luminusOS/images/0029ba9ddebb0a81d4c18be383efcbbd6d9b6f92/editions/workstation/files/system/usr/share/icons/hicolor/scalable/apps/luminusos-logo-icon.svg" alt="" width="80">
 
-This repository produces optional hardware payloads for LuminusOS. It does not
-build the Workstation OCI image, install anything on the host, or publish a
-`testing` or `stable` release. See the [candidate handoff](docs/candidate-handoff.md)
-for the responsibilities of this repository and `images`.
+# LuminusOS Hardware Support
 
-## NVIDIA open: first producer
+Recipes and validation for optional Workstation hardware extensions.
 
-The current recipe in `extensions/nvidia-open/` implements the x86-64 NVIDIA
-620.70.06 vendor-payload stage: a curated GLVND/PRIME runtime and two GA10x
-firmware blobs for the pilot. It reuses the tested LuminusOS packaging recipe.
-The NVIDIA binaries and firmware are copied unmodified; the recipe does not
-install the NVIDIA driver or add a global Nouveau blacklist.
+[Browse recipes](extensions/) · [Run the checks](#run-the-checks) · [Candidate handoff](docs/candidate-handoff.md)
 
-Check the recipe with `just check` and `just test`. To build, use an
-unprivileged Linux environment with Bash, Python 3, GNU coreutils, GNU tar,
-gzip and `just`. Download the `.run` from the URL in
-[`nvidia-620.70.06.json`](extensions/nvidia-open/manifests/nvidia-620.70.06.json)
-and save it outside the repository. Pass the archive and an existing scratch
-directory that you own, with mode `0700` and about 4 GiB free:
+</div>
+
+Use this repository to develop and test optional hardware support for
+LuminusOS Workstation. The recipes let you prepare drivers and firmware
+without rebuilding the base image or installing them on your host.
+
+## Run the checks
+
+On Linux, install Git, Bash, Python 3, GNU coreutils, and
+[`just`](https://github.com/casey/just). Then clone the repository and run the
+checks:
 
 ```sh
-just build-nvidia /path/to/NVIDIA-Linux-x86_64-620.70.06.run /path/to/scratch
+git clone https://github.com/luminusOS/hardware-support.git
+cd hardware-support
+just check
+just test
 ```
 
-The command prints a fresh candidate directory. It checks the archive pin
-before extraction, checks per-file pins and ELF dependencies, and removes the
-working tree on normal exit or a caught interruption. After a crash, remove
-stale scratch only after confirming the build has stopped. The NVIDIA
-extractor runs as your user; CI should run it in an isolated job without
-secrets. The candidate directory contains two tarballs, checksums and build
-reports. Keep that output private. These tarballs are inputs to later
-assembly; they are not signed `systemd-sysupdate` payloads. The open-module
-build, source/notice delivery and hosted handoff are not wired yet.
+`just check` checks the shell scripts for syntax errors. `just test` runs the
+recipe tests. Neither requires vendor downloads, root access, or a matching
+device.
+
+## Build a candidate
+
+Browse [`extensions/`](extensions/) for recipe scripts and pinned input
+manifests. Run `just --list` from the repository root to see the available
+build commands and the arguments they take. Review the recipe's input
+manifest before supplying your own inputs.
+
+> [!IMPORTANT]
+> This is a public source repository. Keep candidate binaries and build
+> credentials out of Git history, releases, and public Actions artifacts.
+> A local candidate is not an installable LuminusOS update.
+
+## Build and release responsibilities
+
+`hardware-support` defines the recipes and produces candidates.
+[`images`](https://github.com/luminusOS/images) owns the Workstation image,
+verifies candidates against the target deployment, and handles signing,
+boot integration, and publication. See the
+[candidate handoff](docs/candidate-handoff.md) for what each repository
+must verify.
