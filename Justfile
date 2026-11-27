@@ -8,3 +8,6 @@ check:
 
 build-nvidia archive scratch:
     bash extensions/nvidia-open/bin/build-candidate.sh {{quote(archive)}} {{quote(scratch)}}
+
+build-nvidia-modules source kernel_devel scratch:
+    bash extensions/nvidia-open/bin/build-modules.sh {{quote(source)}} {{quote(kernel_devel)}} {{quote(scratch)}}
