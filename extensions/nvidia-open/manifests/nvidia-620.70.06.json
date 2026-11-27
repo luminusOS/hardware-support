@@ -1,0 +1,146 @@
+{
+  "schema": "luminusos.nvidia-packaging/1",
+  "pilot_note": "PILOT packager only. Standalone staging of curated vendor runtime and GA10x firmware. Not a production updater; performs no installation and no host or image mutation.",
+  "driver_version": "620.70.06",
+  "vendor_archive": {
+    "url": "https://download.nvidia.com/XFree86/Linux-x86_64/620.70.06/NVIDIA-Linux-x86_64-620.70.06.run",
+    "sha256": "29118e3abd08c07559bcca3d9c76238d039490af0362a2e5bcfcbe7204afd4b1",
+    "size_bytes": 549763565,
+    "last_modified": "2026-10-31T21:30:52Z",
+    "pinned_by": [
+      "evidence/2026-11-22-nvidia-boot/10-vendor-payload.log",
+      "GNOME OS gnome-build-meta commit 143bdf765cfd9a6f61e9158688d5fb9bd1c603bb (sysupdate-nvidia)"
+    ],
+    "license_file": "LICENSE",
+    "license_sha256": "c692fb14ad4f499c6aee1b9e144e6905148c420e6225b17cb2937366c1e507ad",
+    "license_notes": "Firmware redistribution clause (SOFTWARE section d): binary files may be distributed unmodified with the agreement provided to each recipient. Both packages therefore carry an unmodified LICENSE copy at the archive root and under usr/share/licenses/.",
+    "firmware_redistribution_verified_against": "evidence/2026-11-22-nvidia-boot/24-firmware-license.log"
+  },
+  "reproducible_tar": {
+    "mtime_epoch": 1793454652,
+    "mtime_note": "Vendor archive last-modified (2026-10-31T21:30:52Z); pinned so two runs produce byte-identical tarballs.",
+    "gzip": "-n",
+    "owner_group": "numeric 0:0"
+  },
+  "system_allows": [
+    { "soname": "ld-linux-x86-64.so.2", "provider": "glibc-2.44-2.fc45.x86_64", "verified": "target-image-inventory-2026-11-22" },
+    { "soname": "libc.so.6", "provider": "glibc-2.44-2.fc45.x86_64", "verified": "target-image-inventory-2026-11-22" },
+    { "soname": "libm.so.6", "provider": "glibc-2.44-2.fc45.x86_64", "verified": "target-image-inventory-2026-11-22" },
+    { "soname": "libdl.so.2", "provider": "glibc-2.44-2.fc45.x86_64", "verified": "target-image-inventory-2026-11-22" },
+    { "soname": "libpthread.so.0", "provider": "glibc-2.44-2.fc45.x86_64", "verified": "target-image-inventory-2026-11-22" },
+    { "soname": "librt.so.1", "provider": "glibc-2.44-2.fc45.x86_64", "verified": "target-image-inventory-2026-11-22" },
+    { "soname": "libXext.so.6", "provider": "libXext-1.3.6-6.fc45.x86_64", "verified": "target-image-inventory-2026-11-22" },
+    { "soname": "libgbm.so.1", "provider": "mesa-libgbm-26.2.7-1.fc45.x86_64", "verified": "target-image-inventory-2026-11-22" },
+    { "soname": "libwayland-server.so.0", "provider": "libwayland-server-1.26.0-3.fc45.x86_64", "verified": "target-image-inventory-2026-11-22" },
+    { "soname": "libxcb-present.so.0", "provider": "libxcb-1.17.0-8.fc45.x86_64", "verified": "target-image-inventory-2026-11-22" },
+    { "soname": "libxcb-dri3.so.0", "provider": "libxcb-1.17.0-8.fc45.x86_64", "verified": "target-image-inventory-2026-11-22" },
+    { "soname": "libdrm.so.2", "provider": "libdrm-2.4.134-2.fc45.x86_64", "verified": "target-image-inventory-2026-11-22" },
+    { "soname": "libwayland-client.so.0", "provider": "libwayland-client-1.26.0-3.fc45.x86_64", "verified": "target-image-inventory-2026-11-22" },
+    { "soname": "libxcb.so.1", "provider": "libxcb-1.17.0-8.fc45.x86_64", "verified": "target-image-inventory-2026-11-22" },
+    { "soname": "libX11.so.6", "provider": "libX11-1.8.13-3.fc45.x86_64", "verified": "target-image-inventory-2026-11-22" },
+    { "soname": "libX11-xcb.so.1", "provider": "libX11-xcb-1.8.13-3.fc45.x86_64", "verified": "target-image-inventory-2026-11-22" }
+  ],
+  "system_allows_policy": "Minimal by policy: every entry must be an actual DT_NEEDED edge of at least one packaged ELF (integration test it11 enforces this against the latest linkcheck report) and must carry provider NVR + verified status. The guest inventory (41-guest-system-provider-inventory.log, 2026-11-22) confirmed all remaining entries present with exact owners. libresolv.so.1 and libnsl.so.1 were found ABSENT on the target and are referenced by no packaged ELF, so they were removed rather than added as base deps. libgcc_s, libstdc++, libz, libexpat, libutil were likewise dropped: unused by the 19-ELF closure, and future DT_NEEDED onto them must fail loudly and be re-verified, not pre-allowed. Vendor and loader-namespace sonames remain forbidden here.",
+  "loader_conflicts": [
+    "libEGL.so*",
+    "libGL.so*",
+    "libGLX.so*",
+    "libOpenGL.so*",
+    "libGLESv1_CM.so*",
+    "libGLESv2.so*",
+    "libOpenCL.so*"
+  ],
+  "loader_conflicts_note": "GLVND loader-side libraries. The base image provides these via libglvnd/Mesa; shipping NVIDIA's copies would replace the Intel/Mesa stack, which the boot-validation plan forbids. Any match in staging is a hard failure, any DT_NEEDED onto a loader-namespace soname is a hard failure even if the base image has it (the vendor runtime may only reference loaders through the covered dlopen paths), and loader-namespace sonames may never be added to system_allows.",
+  "firmware_install_dir_rule": "kernel-open/nvidia/nv.c NV_FIRMWARE_FOR_NAME = \"nvidia/\" NV_VERSION_STRING \"/\" name \".bin\"; verified from the archive at build time by bin/package-nvidia.sh, not assumed.",
+  "packages": [
+    {
+      "name": "nvidia-runtime",
+      "version": "620.70.06",
+      "description": "Curated link-safe GLVND vendor-side runtime: EGL, GLX, Vulkan ICD, GBM/Wayland/X11 external platforms, NVML and nvidia-smi for PRIME offload. No kernel modules, no CUDA, no video codecs, no loader libraries.",
+      "files": [
+        { "archive": "libEGL_nvidia.so.620.70.06", "install": "usr/lib64/libEGL_nvidia.so.620.70.06", "mode": "0755", "domain": "egl" },
+        { "archive": "libGLESv1_CM_nvidia.so.620.70.06", "install": "usr/lib64/libGLESv1_CM_nvidia.so.620.70.06", "mode": "0755", "domain": "egl" },
+        { "archive": "libGLESv2_nvidia.so.620.70.06", "install": "usr/lib64/libGLESv2_nvidia.so.620.70.06", "mode": "0755", "domain": "egl" },
+        { "archive": "libGLX_nvidia.so.620.70.06", "install": "usr/lib64/libGLX_nvidia.so.620.70.06", "mode": "0755", "domain": "glx+vulkan-icd" },
+        { "archive": "libnvidia-eglcore.so.620.70.06", "install": "usr/lib64/libnvidia-eglcore.so.620.70.06", "mode": "0755", "domain": "egl" },
+        { "archive": "libnvidia-glcore.so.620.70.06", "install": "usr/lib64/libnvidia-glcore.so.620.70.06", "mode": "0755", "domain": "glx+vulkan" },
+        { "archive": "libnvidia-glsi.so.620.70.06", "install": "usr/lib64/libnvidia-glsi.so.620.70.06", "mode": "0755", "domain": "egl+glx+vulkan" },
+        { "archive": "libnvidia-tls.so.620.70.06", "install": "usr/lib64/libnvidia-tls.so.620.70.06", "mode": "0755", "domain": "egl+glx+vulkan" },
+        { "archive": "libnvidia-glvkspirv.so.620.70.06", "install": "usr/lib64/libnvidia-glvkspirv.so.620.70.06", "mode": "0755", "domain": "vulkan" },
+        { "archive": "libnvidia-allocator.so.620.70.06", "install": "usr/lib64/libnvidia-allocator.so.620.70.06", "mode": "0755", "domain": "gbm+egl" },
+        { "archive": "libnvidia-cfg.so.620.70.06", "install": "usr/lib64/libnvidia-cfg.so.620.70.06", "mode": "0755", "domain": "nvml" },
+        { "archive": "libnvidia-gpucomp.so.620.70.06", "install": "usr/lib64/libnvidia-gpucomp.so.620.70.06", "mode": "0755", "domain": "egl+glx+vulkan" },
+        { "archive": "libnvidia-ml.so.620.70.06", "install": "usr/lib64/libnvidia-ml.so.620.70.06", "mode": "0755", "domain": "nvml" },
+        { "archive": "libnvidia-egl-wayland.so.1.1.20", "install": "usr/lib64/libnvidia-egl-wayland.so.1.1.20", "mode": "0755", "domain": "egl-wayland-offload" },
+        { "archive": "libnvidia-egl-wayland2.so.1.0.2", "install": "usr/lib64/libnvidia-egl-wayland2.so.1.0.2", "mode": "0755", "domain": "egl-wayland-offload" },
+        { "archive": "libnvidia-egl-gbm.so.1.1.3", "install": "usr/lib64/libnvidia-egl-gbm.so.1.1.3", "mode": "0755", "domain": "gbm" },
+        { "archive": "libnvidia-egl-xcb.so.1.0.6", "install": "usr/lib64/libnvidia-egl-xcb.so.1.0.6", "mode": "0755", "domain": "egl-x11-offload" },
+        { "archive": "libnvidia-egl-xlib.so.1.0.6", "install": "usr/lib64/libnvidia-egl-xlib.so.1.0.6", "mode": "0755", "domain": "egl-x11-offload" },
+        { "archive": "nvidia-smi", "install": "usr/bin/nvidia-smi", "mode": "0755", "domain": "nvml" },
+        { "archive": "10_nvidia.json", "install": "usr/share/glvnd/egl_vendor.d/10_nvidia.json", "mode": "0644", "references": "libEGL_nvidia.so.0", "domain": "egl" },
+        { "archive": "10_nvidia_wayland.json", "install": "usr/share/glvnd/egl_external_platform.d/10_nvidia_wayland.json", "mode": "0644", "references": "libnvidia-egl-wayland.so.1", "domain": "egl-wayland-offload" },
+        { "archive": "09_nvidia_wayland2.json", "install": "usr/share/glvnd/egl_external_platform.d/09_nvidia_wayland2.json", "mode": "0644", "references": "libnvidia-egl-wayland2.so.1", "domain": "egl-wayland-offload" },
+        { "archive": "15_nvidia_gbm.json", "install": "usr/share/glvnd/egl_external_platform.d/15_nvidia_gbm.json", "mode": "0644", "references": "libnvidia-egl-gbm.so.1", "domain": "gbm" },
+        { "archive": "20_nvidia_xcb.json", "install": "usr/share/glvnd/egl_external_platform.d/20_nvidia_xcb.json", "mode": "0644", "references": "libnvidia-egl-xcb.so.1", "domain": "egl-x11-offload" },
+        { "archive": "20_nvidia_xlib.json", "install": "usr/share/glvnd/egl_external_platform.d/20_nvidia_xlib.json", "mode": "0644", "references": "libnvidia-egl-xlib.so.1", "domain": "egl-x11-offload" },
+        { "archive": "nvidia_icd.json", "install": "usr/share/vulkan/icd.d/nvidia_icd.json", "mode": "0644", "references": "libGLX_nvidia.so.0", "domain": "vulkan" },
+        { "archive": "nvidia-application-profiles-620.70.06-rc", "install": "usr/share/nvidia/nvidia-application-profiles-620.70.06-rc", "mode": "0644", "domain": "egl+glx+vulkan" },
+        { "archive": "nvidia-application-profiles-620.70.06-key-documentation", "install": "usr/share/nvidia/nvidia-application-profiles-620.70.06-key-documentation", "mode": "0644", "domain": "documentation" },
+        { "archive": "LICENSE", "install": "usr/share/licenses/nvidia-620.70.06/LICENSE", "mode": "0644", "domain": "license" }
+      ],
+      "symlinks": [
+        { "install": "usr/lib64/libEGL_nvidia.so.0", "target": "libEGL_nvidia.so.620.70.06" },
+        { "install": "usr/lib64/libGLESv1_CM_nvidia.so.1", "target": "libGLESv1_CM_nvidia.so.620.70.06" },
+        { "install": "usr/lib64/libGLESv2_nvidia.so.2", "target": "libGLESv2_nvidia.so.620.70.06" },
+        { "install": "usr/lib64/libGLX_nvidia.so.0", "target": "libGLX_nvidia.so.620.70.06" },
+        { "install": "usr/lib64/libnvidia-allocator.so.1", "target": "libnvidia-allocator.so.620.70.06" },
+        { "install": "usr/lib64/libnvidia-cfg.so.1", "target": "libnvidia-cfg.so.620.70.06" },
+        { "install": "usr/lib64/libnvidia-ml.so.1", "target": "libnvidia-ml.so.620.70.06" },
+        { "install": "usr/lib64/libnvidia-egl-wayland.so.1", "target": "libnvidia-egl-wayland.so.1.1.20" },
+        { "install": "usr/lib64/libnvidia-egl-wayland2.so.1", "target": "libnvidia-egl-wayland2.so.1.0.2" },
+        { "install": "usr/lib64/libnvidia-egl-gbm.so.1", "target": "libnvidia-egl-gbm.so.1.1.3" },
+        { "install": "usr/lib64/libnvidia-egl-xcb.so.1", "target": "libnvidia-egl-xcb.so.1.0.6" },
+        { "install": "usr/lib64/libnvidia-egl-xlib.so.1", "target": "libnvidia-egl-xlib.so.1.0.6" },
+        { "install": "usr/lib64/gbm/nvidia-drm_gbm.so", "target": "../libnvidia-allocator.so.1" }
+      ],
+      "dlopen_excludes": [
+        { "pattern": "^libnvidia-ml\\.so$", "reason": "Unversioned NVML dev symlink string embedded in nvidia-smi; runtime consumers use the packaged libnvidia-ml.so.1. Dev symlinks are intentionally not shipped in a runtime package." },
+        { "pattern": "^libnvidia-cfg\\.so$", "reason": "Unversioned dev symlink string embedded in libnvidia-cfg itself; runtime consumers use the packaged libnvidia-cfg.so.1. Dev symlinks are intentionally not shipped in a runtime package." },
+        { "pattern": "^libcuda\\.so", "reason": "CUDA compute is outside the pilot domains (EGL/GLX/Vulkan/GBM/NVML). Unversioned .so.1 form included." },
+        { "pattern": "^libcudadebugger\\.so", "reason": "CUDA debugger attach path; not in pilot domains." },
+        { "pattern": "^libnvidia-(ptxjitcompiler|nvvm|nvvm70|tileiras)\\.so", "reason": "Legacy PTX/SPIR-V compute compilers and RT compiler backend, reached by runtime loading, not DT_NEEDED (guest build 2026-11-22 confirmed only libnvidia-gpucomp is hard-linked; gpucomp is packaged). Vulkan compute pipelines and ray tracing remain unresolved for the pilot and must be re-validated on ASUS hardware before these are shipped." },
+        { "pattern": "^libnvidia-rtcore\\.so", "reason": "Vulkan ray tracing backend; not exercised by the pilot offload gate." },
+        { "pattern": "^libnvidia-(opencl)\\.so", "reason": "OpenCL is not in the pilot domains." },
+        { "pattern": "^libnvidia-(cuvid|encode|vdpau_nvidia|opticalflow|ngx|ngx-builtin-dlssd|fbc)\\.so", "reason": "Video decode/encode, VDPAU, DLSS-NGX and NvFBC capture belong to other hardware-feature deliveries or are disabled by default; not part of the EGL/GLX/Vulkan/GBM/NVML offload runtime." },
+        { "pattern": "^libnvidia-(vksc-core|present)\\.so", "reason": "VKSC streaming client stack and implicit NV_present layer; not requested by the pilot and shipped only with their own manifests upstream." },
+        { "pattern": "^libnvidia-(api|pkcs11|pkcs11-openssl3|imex|fmdrv|gtk2|gtk3|wayland-client|sandboxutils)\\.so", "reason": "NVAPI/Wine stack, PKCS#11, clustering/imex, secure processor, GTK and nvidia-settings UI helpers, and container sandbox utilities. None is packaged; DT_NEEDED resolution already prefers package files, so no packaged library can be masked by this rule." },
+        { "pattern": "^libglxserver_nvidia\\.so", "reason": "Xorg GLX extension module for the proprietary X driver. Pilot composites on Intel/Wayland; Xwayland GLX goes through the packaged libGLX_nvidia via GLVND." },
+        { "pattern": "^nvidia_drv\\.so", "reason": "Native Xorg DDX driver; not installed in a Wayland-first pilot." },
+        { "pattern": "^(nvidia-cuda-mps-control|nvidia-cuda-mps-server|nvidia-persistenced|nvidia-powerd|nvidia-debugdump|nvidia-ngx-updater|nvidia-pcc|nvidia-settings|nvidia-xconfig|nvidia-modprobe)$", "reason": "Daemons, utilities and X config helpers. nvidia-modprobe setuid auto-load and persistenced are boot-transaction/module-loading concerns owned by the early-artifact integration, not this runtime packager." }
+      ],
+      "loader_reference_excludes": [
+        { "pattern": "^libEGL\\.so(\\.[0-9.]*[0-9])?$", "reason": "GLVND loader namespace. The base image provides libEGL.so.1 via libglvnd (confirmed present on the QEMU target base 2026-11-22); NVIDIA libraries reference it only for dispatch. Shipping the archive's loader copies would replace the Intel/Mesa stack and is forbidden by loader_conflicts." },
+        { "pattern": "^libGL\\.so(\\.[0-9.]*[0-9])?$", "reason": "GLVND/Mesa loader namespace (unversioned string embedded in vendor dispatch tables). The runtime consumer is libGL.so.1 from the base image; the archive copy must never be packaged." },
+        { "pattern": "^libGLX\\.so(\\.[0-9.]*[0-9])?$", "reason": "GLVND loader namespace; provided by base image libglvnd. Reference is vendor dispatch metadata, not a file we may ship." },
+        { "pattern": "^libOpenGL\\.so(\\.[0-9.]*[0-9])?$", "reason": "GLVND loader namespace; base image owned." },
+        { "pattern": "^libGLESv[12](_CM)?\\.so(\\.[0-9.]*[0-9])?$", "reason": "GLVND loader namespace for GLES dispatch; base image owned. The vendor-side implementations we do ship are the _nvidia suffixed libraries." },
+        { "pattern": "^libOpenCL\\.so(\\.[0-9.]*[0-9])?$", "reason": "Khronos OpenCL ICD loader namespace. Confirmed absent from the target base image and OpenCL is outside the pilot domains; the embedded strings live in vendor OpenCL dispatch paths that are never initialized without the loader. Must not be packaged to satisfy them." }
+      ]
+    },
+    {
+      "name": "nvidia-firmware-ga10x",
+      "version": "620.70.06",
+      "description": "Separate versioned GA10x GSP firmware for the RTX 3050 Mobile (GA107M). Module requests these under nvidia/620.70.06/. TU10x firmware is deliberately excluded from this pilot package.",
+      "files": [
+        { "archive": "firmware/gsp_ga10x.bin", "install": "usr/lib/firmware/nvidia/620.70.06/gsp_ga10x.bin", "mode": "0644", "sha256": "26a32926507e19e8c92911ed6a9b7981c9699c7a10bb78cc76b4f4abcbff84b6", "sha256_source": "evidence/2026-11-22-nvidia-boot/10-vendor-payload.log" },
+        { "archive": "firmware/ucodes_ga10x.bin", "install": "usr/lib/firmware/nvidia/620.70.06/ucodes_ga10x.bin", "mode": "0644", "sha256_note": "Hash recorded in build report; not previously pinned in lab evidence." },
+        { "archive": "LICENSE", "install": "usr/share/licenses/nvidia-620.70.06/LICENSE", "mode": "0644", "domain": "license" }
+      ],
+      "declared_by_module": ["gsp_ga10x", "ucodes_ga10x"],
+      "excluded": [
+        { "archive": "firmware/gsp_tu10x.bin", "reason": "Turing family not present in the pilot hardware." },
+        { "archive": "firmware/ucodes_tu10x.bin", "reason": "Turing family not present in the pilot hardware." }
+      ]
+    }
+  ]
+}

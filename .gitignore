@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+*.run
+*.raw
+*.raw.xz
+*.tar.gz
+nvidia-open.????????/
